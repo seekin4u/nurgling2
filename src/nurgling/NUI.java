@@ -71,7 +71,7 @@ public class NUI extends UI
     public void mousemove(MouseEvent ev, Coord c) {
         if(NUtils.getGameUI()!=null && NUtils.getGameUI().map!=null) {
             if (core!=null && core.debug &&  core.isinspect) {
-                if (modshift) {
+                 if (modshift) {
                     ((NMapView) NUtils.getGameUI().map).inspect(c);
                 } else {
                     core.isinspect = false;

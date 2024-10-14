@@ -1,10 +1,9 @@
 package nurgling;
 
 import haven.*;
+
 import static haven.MCache.tilesz;
 
-import haven.render.*;
-import nurgling.actions.ActionWithFinal;
 import nurgling.actions.QuickActionBot;
 import nurgling.areas.*;
 import nurgling.overlays.NTexLabel;
@@ -16,17 +15,16 @@ import java.awt.image.*;
 import java.util.*;
 import java.util.concurrent.atomic.*;
 
-public class NMapView extends MapView
-{
-    public static final KeyBinding kb_quickaction = KeyBinding.get("quickaction", KeyMatch.forchar('q',0));
-    public static final KeyBinding kb_quickignaction = KeyBinding.get("quickignaction", KeyMatch.forchar('q',1));
-    public static final int MINING_OVERLAY = - 1;
+public class NMapView extends MapView {
+    public static final KeyBinding kb_quickaction = KeyBinding.get("quickaction", KeyMatch.forchar('q', 0));
+    public static final KeyBinding kb_quickignaction = KeyBinding.get("quickignaction", KeyMatch.forchar('q', 1));
+    public static final int MINING_OVERLAY = -1;
     public Coord lastGC = null;
-    public NMapView(Coord sz, Glob glob, Coord2d cc, long plgob)
-    {
+
+    public NMapView(Coord sz, Glob glob, Coord2d cc, long plgob) {
         super(sz, glob, cc, plgob);
-        for(int i = 0 ; i < MCache.customolssize; i++)
-        toggleol("hareas", true);
+        for (int i = 0; i < MCache.customolssize; i++)
+            toggleol("hareas", true);
         toggleol("minesup", true);
     }
 
@@ -34,36 +32,31 @@ public class NMapView extends MapView
     final ArrayList<String> tlays = new ArrayList<>();
 
     public AtomicBoolean isAreaSelectionMode = new AtomicBoolean(false);
-    public NArea.Space areaSpace = null;
+    public AtomicBoolean isSelectingGobMode = new AtomicBoolean(false);
 
+    public NArea.Space areaSpace = null;
+    public Gob selectedGob = null;
     public HashMap<Long, Gob> dummys = new HashMap<>();
 
     @Override
     public void draw(GOut g) {
         super.draw(g);
-        for(Gob dummy : dummys.values())
-        {
+        for (Gob dummy : dummys.values()) {
             dummy.gtick(g.out);
         }
     }
 
-
-
-
-    public void initDummys()
-    {
-        for(Integer id : glob.map.areas.keySet())
-        {
+    public void initDummys() {
+        for (Integer id : glob.map.areas.keySet()) {
             createAreaLabel(id);
         }
     }
 
     public void createAreaLabel(Integer id) {
         NArea area = glob.map.areas.get(id);
-        Pair<Coord2d,Coord2d> space = area.getRCArea();
+        Pair<Coord2d, Coord2d> space = area.getRCArea();
 
-        if(space!=null)
-        {
+        if (space != null) {
             Coord2d pos = (space.a.add(space.b)).div(2);
 
             OCache.Virtual dummy = glob.oc.new Virtual(pos, 0);
@@ -77,25 +70,19 @@ public class NMapView extends MapView
         }
     }
 
-    public void destroyDummys()
-    {
-        for(Gob d: dummys.values())
-        {
-            if(glob.oc.getgob(d.id)!=null)
+    public void destroyDummys() {
+        for (Gob d : dummys.values()) {
+            if (glob.oc.getgob(d.id) != null)
                 glob.oc.remove(d);
         }
         dummys.clear();
     }
 
-    public static NMiningOverlay getMiningOl()
-    {
-        if(NUtils.getGameUI()!=null && NUtils.getGameUI().map!=null)
-        {
-            synchronized (NUtils.getGameUI().map)
-            {
+    public static NMiningOverlay getMiningOl() {
+        if (NUtils.getGameUI() != null && NUtils.getGameUI().map != null) {
+            synchronized (NUtils.getGameUI().map) {
                 NMiningOverlay mo = (NMiningOverlay) NUtils.getGameUI().map.nols.get(MINING_OVERLAY);
-                if (mo == null)
-                {
+                if (mo == null) {
                     NUtils.getGameUI().map.addCustomOverlay(MINING_OVERLAY, new NMiningOverlay());
                 }
                 mo = (NMiningOverlay) NUtils.getGameUI().map.nols.get(MINING_OVERLAY);
@@ -105,17 +92,15 @@ public class NMapView extends MapView
         return null;
     }
 
-    public static boolean isCustom(Integer id)
-    {
-        if(id == MINING_OVERLAY)
-        {
-            return NUtils.getGameUI().map.nols.get(MINING_OVERLAY)!=null;
+    public static boolean isCustom(Integer id) {
+        if (id == MINING_OVERLAY) {
+            return NUtils.getGameUI().map.nols.get(MINING_OVERLAY) != null;
         }
         return false;
     }
 
     public Object tooltip(Coord c, Widget prev) {
-        if (NUtils.getGameUI()!=null && !ttip.isEmpty() && NUtils.getGameUI().ui.core.isInspectMode()) {
+        if (NUtils.getGameUI() != null && !ttip.isEmpty() && NUtils.getGameUI().ui.core.isInspectMode()) {
 
             Collection<BufferedImage> imgs = new LinkedList<BufferedImage>();
             if (ttip.get("gob") != null) {
@@ -123,9 +108,9 @@ public class NMapView extends MapView
                 imgs.add(gob);
                 imgs.add(RichText.render(ttip.get("gob"), 0).img);
             }
-                BufferedImage mc = RichText.render(String.format("$col[128,128,255]{%s}:", "MouseCoord"), 0).img;
-                imgs.add(mc);
-                imgs.add(RichText.render(getLCoord().toString(), 0).img);
+            BufferedImage mc = RichText.render(String.format("$col[128,128,255]{%s}:", "MouseCoord"), 0).img;
+            imgs.add(mc);
+            imgs.add(RichText.render(getLCoord().toString(), 0).img);
             if (ttip.get("rc") != null) {
                 BufferedImage gob = RichText.render(String.format("$col[128,128,128]{%s}:", "Coord"), 0).img;
                 imgs.add(gob);
@@ -194,8 +179,7 @@ public class NMapView extends MapView
             if (!tlays.isEmpty() && false) {
                 BufferedImage gob = RichText.render(String.format("$col[155,32,176]{%s}:", "Layers"), 0).img;
                 imgs.add(gob);
-                for(String s: tlays)
-                {
+                for (String s : tlays) {
                     imgs.add(RichText.render(s, 0).img);
                 }
             }
@@ -209,14 +193,18 @@ public class NMapView extends MapView
         return (super.tooltip(c, prev));
     }
 
-    public static Collection<String> camlist(){
+    public static Collection<String> camlist() {
         return camtypes.keySet();
     }
-    static {camtypes.put("northo", NOrthoCam.class);}
-    
-    public static String defcam(){
+
+    static {
+        camtypes.put("northo", NOrthoCam.class);
+    }
+
+    public static String defcam() {
         return Utils.getpref("defcam", "ortho");
     }
+
     public static void defcam(String name) {
         Utils.setpref("defcam", name);
     }
@@ -231,28 +219,28 @@ public class NMapView extends MapView
                     Gob gob = Gob.from(inf.ci);
                     if (gob != null) {
                         ttip.put("gob", gob.ngob.name);
-                        if(gob.ngob.hitBox!=null) {
+                        if (gob.ngob.hitBox != null) {
                             ttip.put("HitBox", gob.ngob.hitBox.toString());
                             ttip.put("isDynamic", String.valueOf(gob.ngob.isDynamic));
                         }
                         ttip.put("dist", String.valueOf(gob.rc.dist(NUtils.player().rc)));
                         ttip.put("Seg", String.valueOf(gob.ngob.seq));
-                        ttip.put("rc" , gob.rc.toString());
-                        if(!gob.ols.isEmpty()) {
+                        ttip.put("rc", gob.rc.toString());
+                        if (!gob.ols.isEmpty()) {
                             StringBuilder ols = new StringBuilder();
                             boolean isPrinted = false;
                             for (Gob.Overlay ol : gob.ols) {
 //                                if (ol.spr != null) {
-                                    isPrinted = true;
-                                    String res = ol.spr.getClass().toString();
-                                    if(!res.contains("$"))
-                                        ols.append(res + " ");
+                                isPrinted = true;
+                                String res = ol.spr.getClass().toString();
+                                if (!res.contains("$"))
+                                    ols.append(res + " ");
 //                                }
                             }
-                            if(isPrinted)
+                            if (isPrinted)
                                 ttip.put("ols", ols.toString());
                         }
-                        if(!gob.attr.isEmpty()) {
+                        if (!gob.attr.isEmpty()) {
                             StringBuilder attrs = new StringBuilder();
                             boolean isPrinted = false;
                             for (GAttrib attr : gob.attr.values()) {
@@ -260,15 +248,14 @@ public class NMapView extends MapView
                                 if (attr instanceof Drawable) {
                                     if (((Drawable) attr).getres() != null) {
                                         Drawable drawable = ((Drawable) attr);
-                                        if(drawable instanceof Composite)
-                                        {
+                                        if (drawable instanceof Composite) {
                                             ttip.put("pose", ((Composite) drawable).current_pose);
                                         }
                                         if (((Drawable) attr).getres().getLayers() != null) {
                                             isPrinted = true;
                                             for (Resource.Layer lay : ((Drawable) attr).getres().getLayers()) {
                                                 String res = lay.getClass().toString();
-                                                tlays.add(res.replace("$","_") + " ");
+                                                tlays.add(res.replace("$", "_") + " ");
                                             }
                                         }
                                     }
@@ -277,17 +264,17 @@ public class NMapView extends MapView
 //                                if (ol.spr != null) {
                                 isPrinted = true;
                                 String res = attr.getClass().toString();
-                                if(!res.contains("$"))
+                                if (!res.contains("$"))
                                     attrs.append(res + " ");
 //                                }
                             }
-                            if(isPrinted)
+                            if (isPrinted)
                                 ttip.put("attr", attrs.toString());
                         }
 
                         ttip.put("id", String.valueOf(gob.id));
 
-                        if (gob.ngob.getModelAttribute()!=-1) {
+                        if (gob.ngob.getModelAttribute() != -1) {
                             ttip.put("marker", String.valueOf(gob.ngob.getModelAttribute()));
                         }
 
@@ -320,26 +307,39 @@ public class NMapView extends MapView
         }.run();
     }
 
+    void selectGob(Coord c) {
+        new Hittest(c) {
+            @Override
+            protected void hit(Coord pc, Coord2d mc, ClickData inf) {
+                if (inf != null) {
+                    Gob gob = Gob.from(inf.ci);
+                    if (gob != null) {
+                        selectedGob = gob;
+                    }
+                }
+            }
 
-    public String addArea(NArea.Space result)
-    {
+            @Override
+            protected void nohit(Coord pc) {
+                selectedGob = null;
+            }
+        }.run();
+    }
+
+    public String addArea(NArea.Space result) {
         String key;
-        synchronized (glob.map.areas)
-        {
+        synchronized (glob.map.areas) {
             HashSet<String> names = new HashSet<String>();
             int id = 1;
-            for(NArea area : glob.map.areas.values())
-            {
-                if(area.id >= id)
-                {
+            for (NArea area : glob.map.areas.values()) {
+                if (area.id >= id) {
                     id = area.id + 1;
                 }
                 names.add(area.name);
             }
             key = ("New Area" + String.valueOf(glob.map.areas.size()));
-            while(names.contains(key))
-            {
-                key = key+"(1)";
+            while (names.contains(key)) {
+                key = key + "(1)";
             }
             NArea newArea = new NArea(key);
             newArea.id = id;
@@ -352,14 +352,10 @@ public class NMapView extends MapView
         return key;
     }
 
-
     @Override
-    public void tick(double dt)
-    {
-        synchronized (glob.map.areas)
-        {
-            for (NArea area : glob.map.areas.values())
-            {
+    public void tick(double dt) {
+        synchronized (glob.map.areas) {
+            for (NArea area : glob.map.areas.values()) {
                 area.tick(dt);
             }
         }
@@ -383,15 +379,13 @@ public class NMapView extends MapView
     }
 
     @Override
-    protected void oltick()
-    {
+    protected void oltick() {
         super.oltick();
-        for(NOverlay ol : nols.values())
+        for (NOverlay ol : nols.values())
             ol.tick();
     }
 
-    public void toggleol(String tag, boolean a)
-    {
+    public void toggleol(String tag, boolean a) {
         if (a)
             enol(tag);
         else
@@ -399,12 +393,12 @@ public class NMapView extends MapView
     }
 
     @Override
-    public boolean mousedown(Coord c, int button)
-    {
-        if ( isAreaSelectionMode.get() )
-        {
-            if (selection == null)
-            {
+    public boolean mousedown(Coord c, int button) {
+        if (isSelectingGobMode.get()) {
+            selectGob(c);
+        }
+        if (isAreaSelectionMode.get()) {
+            if (selection == null) {
                 selection = new NSelector();
             }
         }
@@ -413,6 +407,7 @@ public class NMapView extends MapView
 
     private Coord lastCoord = null;
     private Coord2d lastCoord2d = new Coord2d();
+
     @Override
     public void mousemove(Coord c) {
         lastCoord = c;
@@ -420,7 +415,7 @@ public class NMapView extends MapView
     }
 
     public Coord2d getLCoord() {
-        new Maptest(lastCoord){
+        new Maptest(lastCoord) {
             public void hit(Coord pc, Coord2d mc) {
                 lastCoord2d.x = mc.x;
                 lastCoord2d.y = mc.y;
@@ -433,31 +428,26 @@ public class NMapView extends MapView
 
     @Override
     public boolean keyup(KeyEvent ev) {
-        if(ev.getKeyCode() == 16)
+        if (ev.getKeyCode() == 16)
             shiftPressed = false;
         return super.keyup(ev);
     }
 
     @Override
     public boolean keydown(KeyEvent ev) {
-        if(ev.getKeyCode() == 16)
+        if (ev.getKeyCode() == 16)
             shiftPressed = true;
-        if(kb_quickaction.key().match(ev) || kb_quickignaction.key().match(ev)) {
+        if (kb_quickaction.key().match(ev) || kb_quickignaction.key().match(ev)) {
             Thread t;
-            (t = new Thread(new Runnable()
-            {
+            (t = new Thread(new Runnable() {
                 @Override
-                public void run()
-                {
-                    try
-                    {
-                        if(kb_quickaction.key().match(ev))
+                public void run() {
+                    try {
+                        if (kb_quickaction.key().match(ev))
                             new QuickActionBot(false).run(NUtils.getGameUI());
                         else
                             new QuickActionBot(true).run(NUtils.getGameUI());
-                    }
-                    catch (InterruptedException e)
-                    {
+                    } catch (InterruptedException e) {
                         NUtils.getGameUI().msg("quick action error" + ":" + "STOPPED");
                     }
                 }
@@ -468,18 +458,14 @@ public class NMapView extends MapView
         return super.keydown(ev);
     }
 
-    public class NSelector extends Selector
-    {
-        public boolean mmouseup(Coord mc, int button)
-        {
-            synchronized (NMapView.this)
-            {
-                if (sc != null)
-                {
+    public class NSelector extends Selector {
+        public boolean mmouseup(Coord mc, int button) {
+            synchronized (NMapView.this) {
+                if (sc != null) {
                     Coord ec = mc.div(MCache.tilesz2);
                     xl.mv = false;
                     tt = null;
-                    areaSpace = new NArea.Space(sc,ec);
+                    areaSpace = new NArea.Space(sc, ec);
                     ol.destroy();
                     mgrab.remove();
                     sc = null;
@@ -492,38 +478,31 @@ public class NMapView extends MapView
         }
     }
 
-    public Collection<String> areas(){
+    public Collection<String> areas() {
         LinkedList<String> areasNames = new LinkedList<>();
-        for(NArea area : glob.map.areas.values())
-        {
+        for (NArea area : glob.map.areas.values()) {
             areasNames.add(area.name);
         }
         return areasNames;
     }
 
-    public NArea findArea(String name)
-    {
-        for(NArea area : glob.map.areas.values())
-        {
-            if(area.name.equals(name))
-            {
+    public NArea findArea(String name) {
+        for (NArea area : glob.map.areas.values()) {
+            if (area.name.equals(name)) {
                 return area;
             }
         }
         return null;
     }
 
-    public void removeArea(String name)
-    {
-        for(NArea area : glob.map.areas.values())
-        {
-            if(area.name.equals(name))
-            {
+    public void removeArea(String name) {
+        for (NArea area : glob.map.areas.values()) {
+            if (area.name.equals(name)) {
                 area.inWork = true;
 //                area.clearOverlayArea();
                 glob.map.areas.remove(area.id);
                 Gob dummy = dummys.get(area.gid);
-                if(dummy != null) {
+                if (dummy != null) {
                     glob.oc.remove(dummy);
                     dummys.remove(area.gid);
                 }
@@ -533,20 +512,17 @@ public class NMapView extends MapView
             }
         }
     }
-    public void changeArea(String name)
-    {
-        for(NArea area : glob.map.areas.values())
-        {
-            if(area.name.equals(name))
-            {
+
+    public void changeArea(String name) {
+        for (NArea area : glob.map.areas.values()) {
+            if (area.name.equals(name)) {
                 area.inWork = true;
-                if(NUtils.getGameUI()!=null && NUtils.getGameUI().map!=null)
-                {
+                if (NUtils.getGameUI() != null && NUtils.getGameUI().map != null) {
                     NOverlay nol = NUtils.getGameUI().map.nols.get(area.id);
                     if (nol != null)
                         nol.remove();
                     Gob dummy = dummys.get(area.gid);
-                    if(dummy != null) {
+                    if (dummy != null) {
                         glob.oc.remove(dummy);
                         dummys.remove(area.gid);
                     }
@@ -558,8 +534,7 @@ public class NMapView extends MapView
         }
     }
 
-    public void changeAreaName(Integer id, String new_name)
-    {
+    public void changeAreaName(Integer id, String new_name) {
         glob.map.areas.get(id).name = new_name;
         NConfig.needAreasUpdate();
     }

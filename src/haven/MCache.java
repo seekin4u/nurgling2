@@ -1386,4 +1386,11 @@ public class MCache implements MapSource {
 	    }
 	}
     }
+    public Grid getgrid(Coord2d pc) {
+	    Coord tc = pc.floor(tilesz);
+	    Coord gc = tc.div(cmaps);
+	    return getgrid(gc);
+    }
+
+
 }

@@ -4,6 +4,18 @@
   <property file="build.properties" />
   <property name="ext-lib-base" value="http://www.havenandhearth.com/java" />
 
+  <property name="kotlin.lib" value="C:\Users\lucas\OneDrive\Documentos\KotlinCompiler\kotlinc\lib"/>
+  <typedef resource="org/jetbrains/kotlin/ant/antlib.xml" classpath="${kotlin.lib}/kotlin-ant.jar"/>
+
+  <path id="kotlin.classpath">
+    <fileset dir="${kotlin.lib}">
+      <include name="kotlin-stdlib.jar"/>
+      <include name="kotlin-reflect.jar"/>
+      <include name="kotlin-stdlib-jdk8.jar"/>
+      <include name="kotlin-stdlib-jdk7.jar"/>
+    </fileset>
+  </path>
+
   <target name="build-env">
     <mkdir dir="build" />
     <mkdir dir="build/classes" />
@@ -78,8 +90,9 @@
 
   <target name="hafen-client" depends="build-env, extlib/jogl, extlib/lwjgl-gl, extlib/steamworks, resources">
     <javac srcdir="src" destdir="build/classes" debug="on"
-	   source="1.8" target="1.8" includeantruntime="no"
+	   source="1.8" target="1.8" includeantruntime="false"
 	   bootclasspath="${boot-classpath}">
+      <withKotlin/>
       <classpath>
 	<pathelement path="lib/ext/jogl/jogl-all.jar" />
 	<pathelement path="lib/ext/jogl/gluegen-rt.jar" />
@@ -89,6 +102,7 @@
 	<pathelement path="lib/ext/steamworks/steamworks4j.jar" />
     <pathelement path="etc/json-java.jar" />
 	<pathelement path="lib/jglob.jar" />
+	<pathelement path="lib/gson-2.11.0.jar" />
       </classpath>
       <compilerarg value="-Xlint:unchecked" />
       <compilerarg value="-Xlint:-options" />
@@ -116,9 +130,10 @@
     <jar destfile="build/hafen.jar" update="true">
       <fileset dir="build/classes" />
       <fileset dir="build/classes-lib" />
+      <zipgroupfileset dir="${kotlin.lib}" includes="kotlin-stdlib.jar,kotlin-reflect.jar,kotlin-stdlib-jdk8.jar,kotlin-stdlib-jdk7.jar"/>
       <manifest>
-	<attribute name="Main-Class" value="haven.MainFrame" />
-	<attribute name="Class-Path" value="jogl-all.jar gluegen-rt.jar lwjgl-fat.jar lwjgl-awt.jar lwjgl-opengl-fat.jar steamworks4j.jar builtin-res.jar hafen-res.jar nurgling-res.jar json-java.jar" />
+        <attribute name="Main-Class" value="haven.MainFrame" />
+        <attribute name="Class-Path" value="jogl-all.jar gluegen-rt.jar lwjgl-fat.jar lwjgl-awt.jar lwjgl-opengl-fat.jar gson-2.11.0.jar steamworks4j.jar builtin-res.jar hafen-res.jar nurgling-res.jar json-java.jar kotlin-stdlib.jar kotlin-reflect.jar kotlin-stdlib-jdk8.jar kotlin-stdlib-jdk7.jar" />
       </manifest>
     </jar>
     <chmod file="build/hafen.jar" perm="a+x" />
@@ -143,6 +158,7 @@
       </fileset>
     </copy>
     <copy todir="build">
+      <fileset dir="lib"><include name="gson-2.11.0.jar" /></fileset>
       <fileset dir="lib/ext/jogl"><include name="*.jar" /></fileset>
       <fileset dir="lib/ext/lwjgl"><include name="*.jar" /></fileset>
       <fileset dir="lib/ext/steamworks"><include name="*.jar" /></fileset>
@@ -160,6 +176,7 @@
 	<include name="hafen-res.jar" />
 	<include name="builtin-res.jar" />
       </fileset>
+      <fileset dir="lib"><include name="gson-2.11.0.jar" /></fileset>
       <fileset dir="lib/ext/jogl"><include name="*.jar" /></fileset>
       <fileset dir="lib/ext/lwjgl"><include name="*.jar" /></fileset>
       <fileset dir="lib/ext/steamworks"><include name="*.jar" /></fileset>

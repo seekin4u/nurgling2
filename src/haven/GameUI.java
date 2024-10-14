@@ -1380,8 +1380,6 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
 	ui.sfxrl(sfx);
     }
 
-
-
     public void error(String msg) {
 	ui.error(msg);
     }
@@ -1551,4 +1549,46 @@ public class GameUI extends ConsoleHost implements Console.Directory, UI.Message
     public Map<String, Console.Command> findcmds() {
 	return(cmdmap);
     }
+
+
+	public Gob getGob(MCache.Grid grid, Coord2d gridPos) {
+		// Convert grid-relative position to map coordinates
+		Coord2d mapPos = new Coord2d(
+				(grid.gc.x * MCache.cmaps.x + gridPos.x) * MCache.tilesz.x,
+				(grid.gc.y * MCache.cmaps.y + gridPos.y) * MCache.tilesz.y
+		);
+
+		// Find the Gob at this position
+		Gob gob = findGob(mapPos);
+
+		if (gob != null) {
+			System.out.println("Found Gob: " + gob.ngob.name);
+
+			// Calculate screen coordinates
+			Coord sc = map.screenxf(gob.getc()).round2();
+
+			// Perform the click
+			return gob;
+		} else {
+			System.out.println("No Gob found at the specified position: " + mapPos);
+			return null;
+		}
+	}
+	public Gob findGob(Coord2d mc) {
+		OCache oc = ui.sess.glob.oc;
+		Gob closestGob = null;
+		double closestDistance = 2.0; // Maximum distance in tiles
+
+		synchronized (oc) {
+			for (Gob gob : oc) {
+				double distance = gob.rc.dist(mc);
+				if (distance < closestDistance) {
+					closestGob = gob;
+					closestDistance = distance;
+				}
+			}
+		}
+
+		return closestGob;
+	}
 }

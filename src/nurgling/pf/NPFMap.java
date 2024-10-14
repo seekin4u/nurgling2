@@ -2,10 +2,13 @@ package nurgling.pf;
 
 import haven.*;
 import haven.Window;
+import haven.resutil.Ridges;
 import nurgling.*;
 
 import java.awt.*;
 import java.util.*;
+
+import static nurgling.actions.PathFinder.pfmdelta;
 
 
 public class NPFMap
@@ -195,7 +198,22 @@ public class NPFMap
 
         public ArrayList<Long> content = new ArrayList<>();
     }
+    public void addAvoidZone(Gob gob, double distance) {
+        Coord2d gobPos = gob.rc;
+        Coord gobGridPos = Utils.toPfGrid(gobPos).sub(begin);
+        int gridDistance = (int) Math.ceil(distance / pfmdelta);
 
+        for (int x = -gridDistance; x <= gridDistance; x++) {
+            for (int y = -gridDistance; y <= gridDistance; y++) {
+                Coord cellPos = new Coord(gobGridPos.x + x, gobGridPos.y + y);
+                if (cellPos.x >= 0 && cellPos.x < size && cellPos.y >= 0 && cellPos.y < size) {
+                    if (Utils.pfGridToWorld(cells[cellPos.x][cellPos.y].pos).dist(gobPos) <= distance) {
+                        cells[cellPos.x][cellPos.y].val = 1; // Mark as unavailable
+                    }
+                }
+            }
+        }
+    }
 
 
     public NPFMap(Coord2d src, Coord2d tgt, int mul) throws InterruptedException {
@@ -281,11 +299,20 @@ public class NPFMap
                     cand.add((Utils.pfGridToWorld(cells[i][j].pos).add(new Coord2d(MCache.tileqsz.x,MCache.tileqsz.y))).div(MCache.tilesz).floor());
 
                     for(Coord c : cand) {
-                        String name = NUtils.getGameUI().ui.sess.glob.map.tilesetname(NUtils.getGameUI().ui.sess.glob.map.gettile(c));
+                        MCache map = NUtils.getGameUI().ui.sess.glob.map;
+                        int t = map.gettile(c);
+                        Tiler tl = map.tiler(t);
+                        String name = map.tilesetname(t);
                         if(!waterMode) {
                             if (name != null && (name.startsWith("gfx/tiles/cave") || name.startsWith("gfx/tiles/rocks") || name.equals("gfx/tiles/deep") || name.equals("gfx/tiles/odeep"))) {
                                 cells[i][j].val = 2;
                             }
+                            if (tl instanceof Ridges.RidgeTile) {
+                                if (Ridges.brokenp(map, c)) {
+                                    cells[i][j].val = 2; // Mark as non-traversable
+                                }
+                            }
+
                         }
                         else
                         {

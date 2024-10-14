@@ -15,6 +15,9 @@ public class NBotsMenu extends Widget
     public NBotsMenu()
     {
         NLayout resources = new NLayout("resources");
+        resources.elements.add(new NButton("pathrecorder", new BotAssembler()));
+        resources.elements.add(new NButton("pathrecorder", new BotPlayer()));
+        resources.elements.add(new NButton("pathrecorder", new PathRecorder()));
         resources.elements.add(new NButton("choper", new Chopper()));
         resources.elements.add(new NButton("pblocks", new PrepareBlocks()));
         resources.elements.add(new NButton("pboards", new PrepareBoards()));

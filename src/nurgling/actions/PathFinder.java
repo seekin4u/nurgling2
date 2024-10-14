@@ -113,7 +113,7 @@ public class PathFinder implements Action {
     public LinkedList<Graph.Vertex> construct(boolean test) throws InterruptedException {
         LinkedList<Graph.Vertex> path = new LinkedList<>();
         int mul = 1;
-        while (path.size() == 0 && mul < 1000) {
+        while (path.isEmpty() && mul < 1000) {
             pfmap = new NPFMap(begin, end, mul);
 
             pfmap.waterMode = waterMode;

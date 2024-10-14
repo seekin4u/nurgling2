@@ -24,6 +24,11 @@ public class NAlias {
         exceptions = new ArrayList<String> ();
     }
 
+    public NAlias(List<String> keys ) {
+        this.keys = new ArrayList<String> ();
+        exceptions = new ArrayList<String> ();
+        this.keys.addAll ( keys );
+    }
     public NAlias(ArrayList<String> keys ) {
         this.keys = new ArrayList<String> ();
         exceptions = new ArrayList<String> ();

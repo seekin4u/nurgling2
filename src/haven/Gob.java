@@ -1045,4 +1045,25 @@ public class Gob implements RenderTree.Node, Sprite.Owner, Skeleton.ModOwner, Eq
             }
         }
     }
+
+	public Coord2d getgridpos() {
+		Coord3f c = getc();
+		Coord2d pc = new Coord2d(c.x, c.y);
+
+		// Get the grid coordinate
+		Coord gc = pc.floor(MCache.tilesz).div(MCache.cmaps);
+
+		// Calculate the position relative to the grid's top-left corner
+		Coord2d gridCorner = new Coord2d(gc.x * MCache.cmaps.x * MCache.tilesz.x,
+				gc.y * MCache.cmaps.y * MCache.tilesz.y);
+
+		// Calculate the position within the grid
+		Coord2d posInGrid = pc.sub(gridCorner);
+
+		// Convert to grid coordinates (0-100 range)
+		return new Coord2d(
+				(posInGrid.x / MCache.tilesz.x) % MCache.cmaps.x,
+				(posInGrid.y / MCache.tilesz.y) % MCache.cmaps.y
+		);
+	}
 }
